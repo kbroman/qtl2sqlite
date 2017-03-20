@@ -26,7 +26,7 @@ read_probs <-
         stop("Must specify either chr or markers")
 
     # read chromosome table
-    chr_tab <- dbGetQuery(db, "SELECT chr, is_x_chr FROM chr ORDER BY chr_index")
+    chr_tab <- RSQLite::dbGetQuery(db, "SELECT chr, is_x_chr FROM chr ORDER BY chr_index")
     if(!is.null(chr)) {
         if(length(chr) != 1) {
             chr <- chr[1]
@@ -40,8 +40,8 @@ read_probs <-
     names(is_x_chr) <- chr_tab$chr
 
     # attributes
-    alleles <- dbGetQuery(db, "SELECT alleles FROM alleles")[,1]
-    attrib <- dbGetQuery(db, "SELECT * FROM attributes")
+    alleles <- RSQLite::dbGetQuery(db, "SELECT alleles FROM alleles")[,1]
+    attrib <- RSQLite::dbGetQuery(db, "SELECT * FROM attributes")
     crosstype <- attrib$crosstype
     alleleprobs <- as.logical(attrib$alleleprobs)
 
@@ -55,7 +55,7 @@ read_probs <-
         if(!("pos" %in% dbListFields(db, "markers")))
             stop('markers table does not include position information, so argument "pos" can not be used.')
 
-        markers <- dbGetQuery(db,
+        markers <- RSQLite::dbGetQuery(db,
                               paste0('SELECT marker FROM markers WHERE chr=="', chr, '"',
                                      ' AND pos >= ', pos[1], ' AND pos <= ', pos[2],
                                      ' ORDER BY marker_index'))$marker
@@ -64,7 +64,7 @@ read_probs <-
             stop("No markers found in that interval")
     }
     else if(is.null(markers)) {
-        markers <- dbGetQuery(db,
+        markers <- RSQLite::dbGetQuery(db,
                              paste0('SELECT marker FROM markers WHERE chr=="', chr, '"',
                                     ' ORDER BY marker_index'))$marker
         if(length(markers) == 0)
@@ -72,10 +72,10 @@ read_probs <-
     }
 
     # read ind
-    ind <- dbGetQuery(db, "SELECT ind FROM ind ORDER BY ind_index")$ind
+    ind <- RSQLite::dbGetQuery(db, "SELECT ind FROM ind ORDER BY ind_index")$ind
 
     # read probs
-    pr <- dbGetQuery(db, paste0("SELECT probs.mat_index, probs.prob, probs.marker, markers.chr ",
+    pr <- RSQLite::dbGetQuery(db, paste0("SELECT probs.mat_index, probs.prob, probs.marker, markers.chr ",
                                 "FROM probs, markers ",
                                 "WHERE probs.marker == markers.marker ",
                                 "AND markers.marker IN (",
@@ -87,9 +87,9 @@ read_probs <-
         stop("markers on multiple chromosomes")
 
     # read geno for this chr
-    geno <- dbGetQuery(db, paste0("SELECT geno FROM geno WHERE chr == '", chr, "'"))$geno
+    geno <- RSQLite::dbGetQuery(db, paste0("SELECT geno FROM geno WHERE chr == '", chr, "'"))$geno
 
-    # turn into array
+    # turn into array and add attributes
     pr <- list("1"=probs_tab2array(pr[,1:2,drop=FALSE], ind, geno, markers))
     names(pr) <- chr
     attr(pr, "crosstype") <- crosstype
