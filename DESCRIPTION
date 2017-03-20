@@ -9,7 +9,8 @@ Maintainer: Karl W Broman <kbroman@biostat.wisc.edu>
 Depends:
     R (>= 3.1.0)
 Imports:
-    sqldf
+    DBI,
+    RSQLite
 Suggests:
     knitr,
     rmarkdown,
