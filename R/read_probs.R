@@ -23,7 +23,7 @@
 #' @seealso \code{\link{write_probs}}
 #'
 #' @importFrom DBI dbConnect dbDisconnect
-#' @importFrom RSQLite SQLite dbGetQuery
+#' @importFrom RSQLite SQLite dbGetQuery dbListFields
 #' @export
 read_probs <-
     function(db, chr=NULL, pos=NULL, markers=NULL)
@@ -63,7 +63,7 @@ read_probs <-
         if(length(pos) != 2 || pos[1] > pos[2])
             stop('Argument "pos" should have length 2 with pos[1] <= pos[2]')
 
-        if(!("pos" %in% dbListFields(db, "markers")))
+        if(!("pos" %in% RSQLite::dbListFields(db, "markers")))
             stop('markers table does not include position information, so argument "pos" can not be used.')
 
         markers <- RSQLite::dbGetQuery(db,
