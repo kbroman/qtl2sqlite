@@ -5,6 +5,7 @@
 #' @param db Either a filename for a SQLite database, or a connection to such a database.
 #' @param probs Genotype probabilities, as calculated by \code{\link[qtl2geno]{calc_genoprob}}.
 #' @param map Optional map of marker positions (a list of vectors of positions).
+#' @param quiet If FALSE, print some information about progress.
 #'
 #' @return None.
 #'
@@ -12,12 +13,25 @@
 #' @importFrom RSQLite SQLite dbGetQuery
 #' @export
 write_probs <-
-    function(db, probs, map=NULL)
+    function(db, probs, map=NULL, quiet=FALSE)
 {
+    # check inputs
+    if(!is.null(map)) match_probs_map(probs, map)
+    nind <- vapply(probs, nrow, 1)
+    if(length(unique(nind)) != 1)
+        stop("probs has different numbers of individuals on different chromosomes")
+    ind <- lapply(probs, rownames)
+    if(length(ind) > 1) { # more than one chromosome
+        for(i in seq(along=ind)[-1]) {
+            if(any(ind[[1]] != ind[[i]]))
+                stop("probs has different row names on different chromosomes")
+        }
+    }
 
     if(is.character(db)) { # filename, so connect (and disconnect on exit)
         if(file.exists(db)) {
             unlink(db) # if file exists, remove it
+            if(!quiet) message("Writing over file ", db)
             warning("Writing over file ", db)
         }
 
@@ -61,8 +75,6 @@ write_probs <-
 
     # write markers table with map information, if provided
     if(!is.null(map)) {
-        match_probs_map(probs, map)
-
         map <- map_list_to_df(map)
         if(length(unique(map$marker)) != nrow(map))
             stop("Marker names are not unique")
@@ -82,11 +94,33 @@ write_probs <-
     }
     dbGetQuery(db, "CREATE INDEX markers_chr ON markers (chr)")
 
-    for(i in seq(along=probs)) {
-    }
+    # write individual table
+    ind_tab <- data.frame(ind=rownames(probs[[1]]),
+                          ind_index=1:nrow(probs[[1]]))
+    DBI::dbWriteTable(db, "ind", ind_tab, row.names=FALSE,
+                      overwrite=TRUE, append=FALSE)
 
-    # dbWriteTable(db, "table", tab)
-    # dbGetQuery(db, "CREATE INDEX index_name ON table (var1, var2)")
+    for(i in seq(along=probs)) {
+        # write geno table
+        chr <- names(probs)[i]
+        if(!quiet) message("Writing probs for chr ", chr)
+        geno <- colnames(probs[[i]])
+        n_geno <- length(geno)
+        geno_tab <- data.frame(chr=rep(chr, n_geno),
+                               geno=geno,
+                               geno_index=seq(along=geno),
+                               stringsAsFactors=FALSE)
+        DBI::dbWriteTable(db, "geno", geno_tab, row.names=FALSE,
+                          overwrite=FALSE, append=TRUE)
+
+        probs_tab <- probs_array2tab(probs)
+        DBI::dbWriteTable(db, "probs", probs_tab, row.names=FALSE,
+                          overwrite=FALSE, append=TRUE)
+    }
+    dbGetQuery(db, "CREATE INDEX geno_chr ON geno (chr)")
+    dbGetQuery(db, "CREATE INDEX probs_marker ON probs (marker)")
+
+    invisible(NULL)
 }
 
 

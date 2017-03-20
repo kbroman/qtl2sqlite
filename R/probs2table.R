@@ -4,8 +4,7 @@ probs_array2tab <-
 {
     d <- dim(probs[[chr]])
     dn <- dimnames(probs[[chr]])
-    data.frame(ind=rep(dn[[1]], d[2]*d[3]),
-               geno=rep(rep(dn[[2]], each=d[1]), d[3]),
+    data.frame(mat_index=rep(1:(d[1]*d[2]), d[3]),
                marker=rep(dn[[3]], each=d[1]*d[2]),
                prob=as.numeric(probs[[chr]]),
                stringsAsFactors=FALSE)
