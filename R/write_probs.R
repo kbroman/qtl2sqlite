@@ -7,7 +7,23 @@
 #' @param map Optional map of marker positions (a list of vectors of positions).
 #' @param quiet If FALSE, print some information about progress.
 #'
-#' @return None.
+#' @return None. (See Details.)
+#'
+#' @details
+#' The genotype probabilities are written to a single SQLite database file. If the file exists, it is overwritten.
+#'
+#' The data are placed in a series of tables.
+#' \itemize{
+#' \item \code{probs} - the probabilities, with fields \code{mat_index}, \code{marker}, \code{prob}
+#' \item \code{markers} - marker information, with fields \code{chr},
+#'     \code{marker}, and \code{marker_index}. If \code{map} was provided,
+#'     there's also a field \code{pos}.
+#' \item \code{chr} - chromosome information, with fields \code{chr}, \code{is_x_chr}, and \code{chr_index}
+#' \item \code{ind} - the individual IDs
+#' \item \code{geno} - genotype codes
+#' \item \code{alleles} - the \code{"alleles"} attribute
+#' \item \code{attributes} - the \code{"crosstype"} and \code{"alleleprobs"} attributes
+#' }
 #'
 #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
 #' @importFrom RSQLite SQLite dbGetQuery
