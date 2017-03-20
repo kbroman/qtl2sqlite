@@ -4,7 +4,7 @@
 \alias{write_probs}
 \title{Write genotype probabilities to database}
 \usage{
-write_probs(db, probs, map = NULL, quiet = FALSE)
+write_probs(db, probs, map = NULL, quiet = TRUE)
 }
 \arguments{
 \item{db}{Either a filename for a SQLite database, or a connection to such a database.}

@@ -41,7 +41,7 @@
 #' @importFrom RSQLite SQLite dbGetQuery
 #' @export
 write_probs <-
-    function(db, probs, map=NULL, quiet=FALSE)
+    function(db, probs, map=NULL, quiet=TRUE)
 {
     # check inputs
     if(!is.null(map)) match_probs_map(probs, map)
