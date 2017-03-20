@@ -50,7 +50,7 @@ write_probs <-
                           chr_index=seq(along=probs),
                           stringsAsFactors=FALSE)
     DBI::dbWriteTable(db, "chr", chr_tab, row.names=FALSE,
-                      overwrite=TRUE, append=FALSE)
+                      overwrite=TRUE)
 
     # write alleles attribute
     alleles <- attr(probs, "alleles")
@@ -59,7 +59,7 @@ write_probs <-
                                  allele_index=seq(along=alleles),
                                  stringsAsFactors=FALSE)
         DBI::dbWriteTable(db, "alleles", allele_tab, row.names=FALSE,
-                          overwrite=TRUE, append=FALSE)
+                          overwrite=TRUE)
     }
 
     # write attribute table
@@ -70,7 +70,7 @@ write_probs <-
     attr_tab <- data.frame(crosstype=crosstype,
                            alleleprobs=alleleprobs)
     DBI::dbWriteTable(db, "attributes", attr_tab, row.names=FALSE,
-                      overwrite=TRUE, append=FALSE)
+                      overwrite=TRUE)
 
 
     # write markers table with map information, if provided
@@ -79,7 +79,7 @@ write_probs <-
         if(length(unique(map$marker)) != nrow(map))
             stop("Marker names are not unique")
 
-        DBI::dbWriteTable(db, "markers", map, row.names=FALSE, overwrite=TRUE, append=FALSE)
+        DBI::dbWriteTable(db, "markers", map, row.names=FALSE, overwrite=TRUE)
         dbGetQuery(db, "CREATE INDEX markers_pos ON markers (chr, pos)")
     }
     else { # no map, so just make table with chr and marker
@@ -90,7 +90,7 @@ write_probs <-
                           marker_index=unlist(lapply(mn, function(a) seq(along=a))),
                           stringsAsFactors=FALSE)
 
-        DBI::dbWriteTable(db, "markers", map, row.names=FALSE, overwrite=TRUE, append=FALSE)
+        DBI::dbWriteTable(db, "markers", map, row.names=FALSE, overwrite=TRUE)
     }
     dbGetQuery(db, "CREATE INDEX markers_chr ON markers (chr)")
 
@@ -98,7 +98,7 @@ write_probs <-
     ind_tab <- data.frame(ind=rownames(probs[[1]]),
                           ind_index=1:nrow(probs[[1]]))
     DBI::dbWriteTable(db, "ind", ind_tab, row.names=FALSE,
-                      overwrite=TRUE, append=FALSE)
+                      overwrite=TRUE)
 
     for(i in seq(along=probs)) {
         # write geno table
@@ -111,11 +111,12 @@ write_probs <-
                                geno_index=seq(along=geno),
                                stringsAsFactors=FALSE)
         DBI::dbWriteTable(db, "geno", geno_tab, row.names=FALSE,
-                          overwrite=FALSE, append=TRUE)
+                          append=TRUE)
 
-        probs_tab <- probs_array2tab(probs)
+        probs_tab <- probs_array2tab(probs, chr=i)
+        print(dimnames(probs[[i]])[[3]])
         DBI::dbWriteTable(db, "probs", probs_tab, row.names=FALSE,
-                          overwrite=FALSE, append=TRUE)
+                          append=TRUE)
     }
     dbGetQuery(db, "CREATE INDEX geno_chr ON geno (chr)")
     dbGetQuery(db, "CREATE INDEX probs_marker ON probs (marker)")
