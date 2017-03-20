@@ -142,7 +142,6 @@ write_probs <-
                           append=TRUE)
 
         probs_tab <- probs_array2tab(probs, chr=i)
-        print(dimnames(probs[[i]])[[3]])
         DBI::dbWriteTable(db, "probs", probs_tab, row.names=FALSE,
                           append=TRUE)
     }
