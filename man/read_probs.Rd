@@ -23,3 +23,16 @@ Genotype probabilities, as an object of class \code{"calc_genoprob"}.
 \description{
 Read genotype probabilities from database
 }
+\examples{
+\dontrun{
+pr <- read_probs("iron_probs.sqlite", chr="5")
+
+pr <- read_probs("iron_probs.sqlite", chr="5", pos=c(50, 75))
+
+pr <- read_probs("iron_probs.sqlite", markers=c("D5Mit11", "c5.loc18", "c5.loc18.5"))
+}
+
+}
+\seealso{
+\code{\link{write_probs}}
+}

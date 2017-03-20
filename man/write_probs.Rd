@@ -37,3 +37,17 @@ The data are placed in a series of tables.
 \item \code{attributes} - the \code{"crosstype"} and \code{"alleleprobs"} attributes
 }
 }
+\examples{
+\dontrun{
+library(qtl2geno)
+iron <- read_cross2(system.file("extdata", "iron.zip", package="qtl2geno"))
+map <- insert_pseudomarkers(iron, map, error_prob=0.002)
+pr <- calc_genoprob(iron, map)
+
+write_probs("iron.sqlite", pr, map)
+}
+
+}
+\seealso{
+\code{\link{read_probs}}
+}
