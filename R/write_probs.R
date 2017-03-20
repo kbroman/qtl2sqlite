@@ -4,6 +4,7 @@
 #'
 #' @param db Either a filename for a SQLite database, or a connection to such a database.
 #' @param probs Genotype probabilities, as calculated by \code{\link[qtl2geno]{calc_genoprob}}.
+#' @param map Optional map of marker positions (a list of vectors of positions).
 #'
 #' @return None.
 #'
@@ -11,7 +12,7 @@
 #' @importFrom RSQLite SQLite dbGetQuery
 #' @export
 write_probs <-
-    function(db, probs, pmap=NULL, gmap=NULL)
+    function(db, probs, map=NULL)
 {
 
     if(is.character(db)) { # filename, so connect (and disconnect on exit)
@@ -58,39 +59,28 @@ write_probs <-
                       overwrite=TRUE, append=FALSE)
 
 
-    # write map table, if provided
-    if(!is.null(pmap)) { # physical map included
-        match_probs_map(probs, pmap, "pmap")
+    # write markers table with map information, if provided
+    if(!is.null(map)) {
+        match_probs_map(probs, map)
 
-        map <- map_list_to_df(pmap, pos_column="pos_Mbp")
+        map <- map_list_to_df(map)
         if(length(unique(map$marker)) != nrow(map))
             stop("Marker names are not unique")
 
-        if(!is.null(gmap)) { # genetic map also included
-            gmap_df <- map_list_to_df(gmap, pos="pos_cM")
-            if(nrow(map) != nrow(gmap_df))
-                stop("gmap and pmap have different numbers of markers")
-            if(!all(gmap$marker == pmap$marker) ||
-               !all(gmap$chr == pmap$chr) ||
-               !all(gmap$marker_index == pmap$marker_index))
-                stop("gmap and pmap have different marker/chr names")
-            map$pos_cM <- gmap_df$pos_cM
-        }
+        DBI::dbWriteTable(db, "markers", map, row.names=FALSE, overwrite=TRUE, append=FALSE)
+        dbGetQuery(db, "CREATE INDEX markers_pos ON markers (chr, pos)")
     }
-    else if(!is.null(gmap)) { # just the genetic map
-        match_probs_map(probs, gmap, "gmap")
+    else { # no map, so just make table with chr and marker
+        mn <- lapply(probs, function(a) dimnames(a)[[3]])
+        nmar <- vapply(probs, function(a) dim(a)[3], 1)
+        map <- data.frame(chr=rep(names(probs), nmar),
+                          marker=unlist(mn),
+                          marker_index=unlist(lapply(mn, function(a) seq(along=a))),
+                          stringsAsFactors=FALSE)
 
-        map <- map_list_to_df(pmap, pos_column="pos_cM")
-        if(length(unique(map$marker)) != nrow(map))
-            stop("Marker names are not unique")
+        DBI::dbWriteTable(db, "markers", map, row.names=FALSE, overwrite=TRUE, append=FALSE)
     }
-    if(!is.null(gmap) && !is.null(pmap)) {
-        DBI::dbWriteTable(db, "map", map, row.names=FALSE, overwrite=TRUE, append=FALSE)
-        if(!is.null(pmap))
-            dbGetQuery(db, "CREATE INDEX pos_Mbp ON map (chr, pos_Mbp)")
-        if(!is.null(gmap))
-            dbGetQuery(db, "CREATE INDEX pos_cM ON map (chr, pos_cM)")
-    }
+    dbGetQuery(db, "CREATE INDEX markers_chr ON markers (chr)")
 
     for(i in seq(along=probs)) {
     }

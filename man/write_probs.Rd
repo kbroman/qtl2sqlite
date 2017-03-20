@@ -4,12 +4,14 @@
 \alias{write_probs}
 \title{Write genotype probabilities to database}
 \usage{
-write_probs(db, probs, pmap = NULL, gmap = NULL)
+write_probs(db, probs, map = NULL)
 }
 \arguments{
 \item{db}{Either a filename for a SQLite database, or a connection to such a database.}
 
 \item{probs}{Genotype probabilities, as calculated by \code{\link[qtl2geno]{calc_genoprob}}.}
+
+\item{map}{Optional map of marker positions (a list of vectors of positions).}
 }
 \value{
 None.
