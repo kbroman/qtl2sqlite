@@ -1,6 +1,6 @@
 ### R/qtl2sqlite
 
-[![Build Status](https://travis-ci.org/rqtl/qtl2sqlite.svg?branch=master)](https://travis-ci.org/rqtl/qtl2sqlite)
+[![Build Status](https://travis-ci.org/kbroman/qtl2sqlite.svg?branch=master)](https://travis-ci.org/kbroman/qtl2sqlite)
 
 [Karl Broman](http://kbroman.org)
 
